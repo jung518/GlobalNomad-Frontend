@@ -1,9 +1,10 @@
 import { useInfiniteQuery, type InfiniteData } from '@tanstack/react-query';
 import { getMyReservations } from '@/apis/myReservation';
 import type { MyReservationsResponse } from '@/apis/type';
+import type { ReservationStatusWithCanceled } from '@/types/reservation';
 
 const SIZE = 6;
-type Status = 'confirmed' | 'canceled' | 'declined' | 'completed' | 'pending' | 'all';
+type Status = ReservationStatusWithCanceled | 'all';
 type QueryKey = ['myReservationsInfinite', Status];
 
 export const useMyReservationsInfinite = (status: Status) => {

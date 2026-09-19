@@ -15,6 +15,7 @@ import BannerImageSection from '@/components/common/image-upload/BannerImageSect
 import IntroImageSection from '@/components/common/image-upload/IntroImageSection';
 import type { ScheduleRow } from '@/types/ScheduleRow';
 import type { ActivityCategory } from '@/apis/type';
+import { ACTIVITY_CATEGORIES } from '@/constants/activityCategory';
 import { useDaumPostcodePopup } from 'react-daum-postcode';
 import type { Address } from 'react-daum-postcode';
 import { useSnackBar } from '@/providers/SnackBarProvider';
@@ -461,7 +462,7 @@ export default function ActivityForm({
             </DropdownTrigger>
 
             <DropdownList className='absolute top-full left-0 z-50 mt-2 w-full rounded-xl border border-gray-100 bg-white p-1 shadow-md'>
-              {['문화 · 예술', '식음료', '투어', '관광', '웰빙', '스포츠'].map((c) => (
+              {ACTIVITY_CATEGORIES.map((c) => (
                 <DropdownItem
                   key={c}
                   onClick={() => handleClickCategory(c)}

@@ -31,6 +31,8 @@
   };
  */
 
+import type { ReservationStatus } from '@/types/reservation';
+
 export type ActivityCategory = '문화 · 예술' | '식음료' | '투어' | '스포츠' | '관광' | '웰빙';
 
 // 사용자 인증 관련 타입
@@ -372,7 +374,7 @@ export interface MyReservationsResponse {
       id: number;
     };
     scheduleId: number;
-    status: 'pending' | 'confirmed' | 'declined' | 'completed';
+    status: ReservationStatus;
     reviewSubmitted: boolean;
     totalPrice: number;
     headCount: number;

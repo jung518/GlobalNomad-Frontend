@@ -5,6 +5,7 @@ import { useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useSignupMutation } from '@/hooks/queries/useSignupMutation';
 import { useSnackBar } from '@/providers/SnackBarProvider';
+import { ROUTES } from '@/constants/routes';
 
 import {
   getErrorMessage,
@@ -59,7 +60,7 @@ export const useSignupForm = () => {
       onSuccess: () => {
         showSnack('회원가입이 완료되었습니다.', 'success', {
           duration: 1200,
-          onClose: () => navigate('/login'),
+          onClose: () => navigate(ROUTES.login),
         });
       },
     });

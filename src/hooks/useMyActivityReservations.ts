@@ -1,11 +1,12 @@
 import { useQuery } from '@tanstack/react-query';
 import { getMyActivityReservations } from '@/apis/getMyActivityReservations';
 import type { MyActivityReservationResponse } from '@/apis/type';
+import type { ReservationStatus } from '@/types/reservation';
 
 export function useMyActivityReservations(
   activityId?: number,
   scheduleId?: number | null,
-  status?: 'declined' | 'pending' | 'confirmed' | 'completed',
+  status?: ReservationStatus,
   dateYmd?: string,
   open?: boolean
 ) {

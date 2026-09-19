@@ -8,7 +8,7 @@ import ReservationPage from '@/pages/ReservationPage';
 import { useProfileImageStore } from '@/stores/profileImageStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useIsMobile } from '@/hooks/useIsMobile';
-type ActivePage = 'profile' | 'reservation' | 'experiences' | 'status';
+import type { MyPageTab } from '@/constants/routes';
 
 export default function MyPageLayout() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -17,7 +17,7 @@ export default function MyPageLayout() {
   const { user: myInfo, initialize } = useAuthStore();
   const { setProfileImageUrl } = useProfileImageStore();
   const isMobile = useIsMobile();
-  const activePage: ActivePage =
+  const activePage: MyPageTab =
     tabParam === 'profile' ||
     tabParam === 'reservation' ||
     tabParam === 'experiences' ||
@@ -27,7 +27,7 @@ export default function MyPageLayout() {
 
   const [mobileOpen, setMobileOpen] = useState<boolean>(() => !!tabParam);
 
-  const handleSelect = (page: ActivePage) => {
+  const handleSelect = (page: MyPageTab) => {
     const params = new URLSearchParams(searchParams);
     params.set('tab', page);
     if (page !== 'reservation') {
@@ -66,7 +66,7 @@ export default function MyPageLayout() {
     }
   }, [myInfo, setProfileImageUrl]);
 
-  const pageMap: Record<ActivePage, React.ReactNode> = {
+  const pageMap: Record<MyPageTab, React.ReactNode> = {
     profile: <MyProfilePage mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />,
     reservation: <ReservationPage mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />,
     experiences: <MyExperiencesPage mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />,

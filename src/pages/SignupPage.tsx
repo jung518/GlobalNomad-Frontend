@@ -6,6 +6,8 @@ import { PrimaryButton, SecondaryButton } from '@/components/common/button';
 import { PasswordInput, TextInput } from '@/components/common/input';
 import { useSignupForm } from '@/hooks/useSignupForm';
 import { Link } from 'react-router-dom';
+import { ROUTES } from '@/constants/routes';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 const SignupPage = () => {
   const { registerOptions, errors, isSubmitting, isFormValid, handleSubmit, getErrorMessage } =
@@ -13,7 +15,7 @@ const SignupPage = () => {
 
   const handleKakaoSignup = () => {
     // 카카오 회원가입 모드로 설정
-    sessionStorage.setItem('isKakaoSignUpMode', 'true');
+    sessionStorage.setItem(STORAGE_KEYS.KAKAO_SIGNUP_MODE, 'true');
 
     const kakaoAuthUrl = kakaoApi.getKakaoAuthUrl('sign-up');
     window.location.href = kakaoAuthUrl;
@@ -95,7 +97,7 @@ const SignupPage = () => {
 
         <div className='text-gray-400'>
           회원이신가요?{' '}
-          <Link to='/login' className='underline'>
+          <Link to={ROUTES.login} className='underline'>
             로그인하기
           </Link>
         </div>

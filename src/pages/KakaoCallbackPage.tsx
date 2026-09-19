@@ -8,6 +8,8 @@ import { isAxiosError } from 'axios';
 import { useSnackBar } from '@/providers/SnackBarProvider';
 import { generateKakaoNickname } from '@/utils/generateKakaoNickname';
 import { Spinner } from '@/components/common/Spinner';
+import { ROUTES } from '@/constants/routes';
+import { STORAGE_KEYS } from '@/constants/storageKeys';
 
 const KakaoCallbackPage = () => {
   const navigate = useNavigate();
@@ -27,13 +29,13 @@ const KakaoCallbackPage = () => {
 
       if (!code) {
         showSnack('카카오 인증에 실패했습니다.', 'error', {
-          onClose: () => navigate('/login', { replace: true }),
+          onClose: () => navigate(ROUTES.login, { replace: true }),
         });
         return;
       }
 
       // 회원가입 모드인지 확인
-      const isKakaoSignUpMode = sessionStorage.getItem('isKakaoSignUpMode') === 'true';
+      const isKakaoSignUpMode = sessionStorage.getItem(STORAGE_KEYS.KAKAO_SIGNUP_MODE) === 'true';
       console.log('✅isKakaoSignUpMode:', isKakaoSignUpMode);
 
       try {
@@ -51,7 +53,7 @@ const KakaoCallbackPage = () => {
           });
 
           // 세션 스토리지 정리
-          sessionStorage.removeItem('isKakaoSignUpMode');
+          sessionStorage.removeItem(STORAGE_KEYS.KAKAO_SIGNUP_MODE);
           console.log('✅🔥isKakaoSignUpMode:', isKakaoSignUpMode);
 
           token.setTokens(signUpResponse.data.accessToken, signUpResponse.data.refreshToken);
@@ -60,14 +62,14 @@ const KakaoCallbackPage = () => {
             'success',
             { duration: 1500 }
           );
-          navigate('/', { replace: true });
+          navigate(ROUTES.home, { replace: true });
         } else {
           // 로그인 모드
           const response = await http.post('/oauth/sign-in/kakao', requestData);
 
           token.setTokens(response.data.accessToken, response.data.refreshToken);
           showSnack('로그인에 성공했습니다.', 'success');
-          navigate('/', { replace: true });
+          navigate(ROUTES.home, { replace: true });
         }
       } catch (error) {
         if (isAxiosError(error) && error.response?.status === 403 && !isKakaoSignUpMode) {
@@ -75,11 +77,11 @@ const KakaoCallbackPage = () => {
           console.log('😀isKakaoSignUpMode:', isKakaoSignUpMode);
 
           showSnack('가입되지 않은 사용자입니다. 회원가입을 진행해주세요.', 'error', {
-            onClose: () => navigate('/signup', { replace: true }),
+            onClose: () => navigate(ROUTES.signup, { replace: true }),
           });
         } else {
           // 에러 시 세션 정리
-          sessionStorage.removeItem('isKakaoSignUpMode');
+          sessionStorage.removeItem(STORAGE_KEYS.KAKAO_SIGNUP_MODE);
           console.log('😀🔥isKakaoSignUpMode:', isKakaoSignUpMode);
 
           const errorMessage =
@@ -88,7 +90,7 @@ const KakaoCallbackPage = () => {
               : '카카오 처리에 실패했습니다.';
 
           showSnack(errorMessage, 'error', { duration: 1000 });
-          navigate('/login', { replace: true });
+          navigate(ROUTES.login, { replace: true });
         }
       } finally {
         setIsLoading(false);

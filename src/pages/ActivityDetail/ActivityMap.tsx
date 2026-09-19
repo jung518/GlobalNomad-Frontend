@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { KAKAOMAP_KEY } from '@/libs/config';
 
 interface ActivityMapProps {
   address: string;
@@ -16,9 +17,7 @@ export default function ActivityMap({ address }: ActivityMapProps) {
 
   // 카카오 지도 스크립트 동적 로드
   useEffect(() => {
-    const kakaoMapKey = import.meta.env.VITE_KAKAOMAP_KEY;
-
-    if (!kakaoMapKey) {
+    if (!KAKAOMAP_KEY) {
       return;
     }
 
@@ -32,7 +31,7 @@ export default function ActivityMap({ address }: ActivityMapProps) {
 
     // 스크립트 동적 추가
     const script = document.createElement('script');
-    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${kakaoMapKey}&libraries=services&autoload=false`;
+    script.src = `https://dapi.kakao.com/v2/maps/sdk.js?appkey=${KAKAOMAP_KEY}&libraries=services&autoload=false`;
 
     script.onload = () => {
       // 카카오 지도 로드 대기

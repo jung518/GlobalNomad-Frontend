@@ -1,9 +1,10 @@
 import { http } from '@/apis/http';
 import type { MyActivityReservationResponse } from '@/apis/type';
+import type { ReservationStatus } from '@/types/reservation';
 
 export type GetMyActivityReservationsParams = {
   scheduleId: number;
-  status: 'declined' | 'pending' | 'confirmed' | 'completed';
+  status: ReservationStatus;
   date?: string;
   cursorId?: number;
   size?: number;

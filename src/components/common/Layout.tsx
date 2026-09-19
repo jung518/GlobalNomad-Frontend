@@ -3,6 +3,7 @@ import Footer from './Footer/Footer';
 import { Header } from '@/components/common/Header/Header';
 import { useEffect } from 'react';
 import { useAuthStore } from '@/stores/authStore';
+import { ROUTES } from '@/constants/routes';
 
 const Layout = () => {
   const navigate = useNavigate();
@@ -28,8 +29,8 @@ const Layout = () => {
     <>
       <Header
         userName={user?.nickname}
-        onLogin={() => navigate('/login')}
-        onSignUp={() => navigate('/signup')}
+        onLogin={() => navigate(ROUTES.login)}
+        onSignUp={() => navigate(ROUTES.signup)}
       />
       <Outlet />
       <Footer />

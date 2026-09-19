@@ -27,6 +27,7 @@ import type { ActivityScheduleResponse } from '@/apis/type';
 import { ArrowDown } from '@/assets/icons';
 import { truncateBySentence } from '@/utils/truncateBySentence';
 import { dayPickerKoreanProps } from '@/utils/dateUtils';
+import { ROUTES } from '@/constants/routes';
 
 const SHORT_DESCRIPTION_MAX_LENGTH = 100;
 
@@ -144,7 +145,7 @@ function ActivityDetailPage() {
   // 삭제 mutation (useDeleteActivityMutation 훅 사용)
   const { mutate: deleteMutate } = useDeleteActivityMutation(() => {
     setIsDeleteModalOpen(false);
-    navigate('/');
+    navigate(ROUTES.home);
   });
 
   // 예약 버튼 활성화 조건 (boolean 타입으로 명시)
@@ -152,7 +153,7 @@ function ActivityDetailPage() {
 
   // 케밥 메뉴 핸들러
   const handleEdit = () => {
-    navigate(`/activities/edit/${activityId}`);
+    navigate(ROUTES.activityEdit(activityId!));
   };
 
   const handleDelete = () => {
@@ -181,7 +182,7 @@ function ActivityDetailPage() {
   const handleReservation = () => {
     if (!isAuthenticated) {
       alert('로그인이 필요합니다.');
-      navigate('/login');
+      navigate(ROUTES.login);
       return;
     }
     if (!isReservationEnabled) {

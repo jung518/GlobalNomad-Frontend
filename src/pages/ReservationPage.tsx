@@ -12,8 +12,17 @@ import { useMyReservationsInfinite } from '@/hooks/queries/useMyReservationsQuer
 import { useCancelReservationMutation } from '@/hooks/queries/useCancelReservationMutation';
 import { useReviewReservationMutation } from '@/hooks/queries/useReviewReservationMutation';
 import { useInfiniteScrollObserver } from '@/hooks/useInfiniteScrollObserver';
+import { ROUTES } from '@/constants/routes';
+import type { ReservationStatusWithCanceled } from '@/types/reservation';
 
-const STATUS_LIST = ['confirmed', 'canceled', 'declined', 'completed', 'pending'] as const;
+// ReservationStatusWithCanceled와 어긋나면 타입 에러로 바로 드러나도록 satisfies로 검증
+const STATUS_LIST = [
+  'confirmed',
+  'canceled',
+  'declined',
+  'completed',
+  'pending',
+] as const satisfies readonly ReservationStatusWithCanceled[];
 
 const STATUS_TEXT_MAP: Record<Status, string> = {
   confirmed: '예약 완료',
@@ -179,7 +188,7 @@ export default function ReservationPage({ setMobileOpen, mobileOpen }: Props) {
           </div>
           <PrimaryButton
             className='font-lg-medium h-13.5 w-45.5 rounded-2xl px-10 py-3.5'
-            onClick={() => navigate('/')}>
+            onClick={() => navigate(ROUTES.home)}>
             둘러보기
           </PrimaryButton>
         </div>

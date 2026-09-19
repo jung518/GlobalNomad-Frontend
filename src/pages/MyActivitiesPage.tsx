@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { useDeleteActivityMutation } from '@/hooks/queries/useDeleteActivityMutation';
 import { useMyActivitiesInfinite } from '@/hooks/queries/useMyActivitiesInfinite';
 import { useInfiniteScrollObserver } from '@/hooks/useInfiniteScrollObserver';
+import { ROUTES } from '@/constants/routes';
 
 type Props = {
   mobileOpen: boolean;
@@ -63,7 +64,7 @@ export default function MyExperiencesPage({ setMobileOpen, mobileOpen }: Props) 
           </div>
         </div>
         <PrimaryButton
-          onClick={() => navigate('/activities/create')}
+          onClick={() => navigate(ROUTES.activityCreate)}
           className='font-lg-bold md:h-12 md:w-34.5'>
           체험 등록하기
         </PrimaryButton>
@@ -89,7 +90,7 @@ export default function MyExperiencesPage({ setMobileOpen, mobileOpen }: Props) 
                   />
                   <Card.Price price={activity.price} className='mb-2.5 lg:mb-5' />
                   <Card.CardButton
-                    onEdit={() => navigate(`/activities/edit/${activity.id}`)}
+                    onEdit={() => navigate(ROUTES.activityEdit(activity.id))}
                     onDelete={() => handleDelete(activity.id)}
                   />
                 </Card.Content>

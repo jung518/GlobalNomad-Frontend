@@ -4,6 +4,7 @@ import { LogOut } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { useLogoutMutation } from '@/hooks/queries/useLogoutMutation';
 import { useProfileImageStore } from '@/stores/profileImageStore';
+import { ROUTES } from '@/constants/routes';
 
 interface Props {
   userName?: string; // optional로 변경
@@ -31,7 +32,7 @@ export const HeaderUserMenu = ({
     logout(undefined, {
       onSettled: () => {
         resetProfileImage();
-        navigate('/');
+        navigate(ROUTES.home);
         onClose();
       },
     });

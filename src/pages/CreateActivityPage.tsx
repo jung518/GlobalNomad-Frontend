@@ -9,6 +9,7 @@ import { useSnackBar } from '@/providers/SnackBarProvider';
 import { useUnsavedChangesBlocker } from '@/hooks/useUnsavedChangesBlocker';
 import { resolveActivityMutationError } from '@/utils/errorMessages';
 import { toYmd } from '@/utils/dateUtils';
+import { ROUTES } from '@/constants/routes';
 
 export default function CreateActivityPage() {
   const { mutate, isPending } = useCreateActivity();
@@ -62,7 +63,7 @@ export default function CreateActivityPage() {
           allowNextNavigation();
 
           setTimeout(() => {
-            navigate('/mypage?tab=experiences');
+            navigate(ROUTES.myPage('experiences'));
           }, 1500);
         },
         onError: (error) => {

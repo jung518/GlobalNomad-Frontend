@@ -2,6 +2,7 @@ import { Link } from 'react-router-dom';
 
 import { cn } from '@/utils/cn';
 import { LogoSm, LogoTitleSm } from '@/assets/logos';
+import { ROUTES } from '@/constants/routes';
 
 type LogoProps = {
   className?: string;
@@ -48,7 +49,7 @@ export function Logo({
   return (
     <div className={cn('inline-flex', className)}>
       <Link
-        to='/'
+        to={ROUTES.home}
         aria-label='메인 페이지로 이동'
         className={cn(
           'flex items-center',

@@ -10,6 +10,7 @@ import { uploadImageToServer } from '@/apis/upload';
 import type { User, UserEditRequest } from '@/apis/type';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '@/stores/authStore';
+import { ROUTES } from '@/constants/routes';
 
 type Props = {
   mobileOpen: boolean;
@@ -61,7 +62,7 @@ export default function MyProfilePage({ mobileOpen, setMobileOpen }: Props) {
       newPassword: '',
       newPasswordConfirm: '',
     });
-    setTimeout(() => navigate('/'), 3000);
+    setTimeout(() => navigate(ROUTES.home), 3000);
   });
   const isFormChanged = useMemo(() => {
     if (!myInfo) {

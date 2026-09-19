@@ -1,12 +1,11 @@
 import ProfileImageUpload from '@/components/common/image-upload/ProfileImageUpload';
 import SidebarButton from '@/components/common/SidebarButton';
 import { cn } from '@/utils/cn';
-
-type ActivePage = 'profile' | 'reservation' | 'experiences' | 'status';
+import type { MyPageTab } from '@/constants/routes';
 
 type Props = {
   variant: 'desktop' | 'tablet' | 'mobile';
-  activePage: ActivePage;
+  activePage: MyPageTab;
   defaultImageUrl?: string | null;
   onProfileClick?: () => void;
   onBookingsClick?: () => void;

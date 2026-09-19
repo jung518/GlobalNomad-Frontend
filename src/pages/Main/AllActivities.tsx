@@ -2,12 +2,13 @@ import { useNavigate } from 'react-router-dom';
 import { FilterButton } from '@/components/common/button/FilterButton';
 import Pagination from '@/components/common/pagination';
 import Title from '@/components/common/Title';
-import { Art, Food, Sport, Tour, Bus, Wellbeing } from '@/assets/icons';
 import Dropdown from '@/components/common/dropdown/Dropdown';
 import DropdownTrigger from '@/components/common/dropdown/DropdownTrigger';
 import DropdownList from '@/components/common/dropdown/DropdownList';
 import DropdownItem from '@/components/common/dropdown/DropdownItem';
 import ActivityGridCard from '@/components/ActivityGridCard';
+import { ACTIVITY_CATEGORIES, ACTIVITY_CATEGORY_ICON_MAP } from '@/constants/activityCategory';
+import { ROUTES } from '@/constants/routes';
 import type { Activity, ActivityCategory } from '@/apis/type';
 
 // 카테고리 타입 정의
@@ -16,18 +17,8 @@ type Category = '전체' | ActivityCategory;
 // 가격 정렬 타입 정의
 type PriceSort = 'price_asc' | 'price_desc' | null;
 
-// 카테고리 아이콘 매핑
-const categoryIconMap: Record<ActivityCategory, React.ReactNode> = {
-  '문화 · 예술': <Art />,
-  식음료: <Food />,
-  스포츠: <Sport />,
-  투어: <Tour />,
-  관광: <Bus />,
-  웰빙: <Wellbeing />,
-};
-
 // 전체 카테고리 목록
-const categories: Category[] = ['전체', ...Object.keys(categoryIconMap)] as Category[];
+const categories: Category[] = ['전체', ...ACTIVITY_CATEGORIES];
 
 // 가격 정렬 옵션
 const priceSortOptions: { label: string; value: PriceSort }[] = [
@@ -114,7 +105,11 @@ export default function AllActivities({
             <FilterButton
               key={category}
               size='md'
-              icon={category === '전체' ? null : categoryIconMap[category as ActivityCategory]}
+              icon={
+                category === '전체'
+                  ? null
+                  : ACTIVITY_CATEGORY_ICON_MAP[category as ActivityCategory]
+              }
               selected={selectedCategory === category}
               onClick={() => onCategoryChange(category)}
               className='shrink-0'>
@@ -134,7 +129,7 @@ export default function AllActivities({
           {activities.map((activity) => (
             <div
               key={activity.id}
-              onClick={() => navigate(`/activities/${activity.id}`)}
+              onClick={() => navigate(ROUTES.activityDetail(activity.id))}
               className='cursor-pointer'>
               <ActivityGridCard activity={activity} />
             </div>

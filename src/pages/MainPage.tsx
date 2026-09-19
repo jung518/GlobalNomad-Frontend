@@ -2,20 +2,13 @@ import { useCallback, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useActivities } from '@/hooks/queries/useActivities';
 import { SearchInput } from '@/components/SearchInput';
+import { ACTIVITY_CATEGORIES } from '@/constants/activityCategory';
 import MainBanner from './Main/MainBanner';
 import PopularActivities from './Main/PopularActivities';
 import AllActivities, { type Category, type PriceSort } from './Main/AllActivities';
 
 // 유효한 카테고리 목록
-const validCategories: Category[] = [
-  '전체',
-  '문화 · 예술',
-  '식음료',
-  '스포츠',
-  '투어',
-  '관광',
-  '웰빙',
-];
+const validCategories: Category[] = ['전체', ...ACTIVITY_CATEGORIES];
 
 // 유효한 정렬 옵션
 const validSorts: ('price_asc' | 'price_desc')[] = ['price_asc', 'price_desc'];

@@ -12,6 +12,7 @@ import { useSnackBar } from '@/providers/SnackBarProvider';
 import { useUnsavedChangesBlocker } from '@/hooks/useUnsavedChangesBlocker';
 import { resolveActivityMutationError } from '@/utils/errorMessages';
 import { toYmd } from '@/utils/dateUtils';
+import { ROUTES } from '@/constants/routes';
 
 export default function EditActivityPage() {
   const navigate = useNavigate();
@@ -127,7 +128,7 @@ export default function EditActivityPage() {
           allowNextNavigation();
 
           setTimeout(() => {
-            navigate('/mypage?tab=experiences');
+            navigate(ROUTES.myPage('experiences'));
           }, 1500);
         },
 
