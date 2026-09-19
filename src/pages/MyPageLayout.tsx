@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import CardsideBar from '@/components/common/CardsideBar';
-import BookingStatusPage from '@/pages/BookingStatusPage';
-import MyExperiencesPage from '@/pages/MyActivitiesPage';
-import MyProfilePage from '@/pages/MyProfilePage';
-import ReservationPage from '@/pages/ReservationPage';
+import BookingStatusPage from './MyPage/BookingStatusPage';
+import MyExperiencesPage from './MyPage/MyActivitiesPage';
+import MyProfilePage from './MyPage/MyProfilePage';
+import ReservationPage from './MyPage/ReservationPage';
 import { useProfileImageStore } from '@/stores/profileImageStore';
 import { useAuthStore } from '@/stores/authStore';
 import { useIsMobile } from '@/hooks/useIsMobile';
