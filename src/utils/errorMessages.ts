@@ -13,7 +13,8 @@ export const getApiErrorMessage = (error: unknown, fallbackMessage: string): str
   if (!isAxiosError<{ message?: string }>(error)) {
     return fallbackMessage;
   }
-  return error.response?.data?.message ?? fallbackMessage;
+  // 빈 문자열 메시지("")도 안내문 대신 그대로 노출되지 않도록 truthy 체크(||) 사용
+  return error.response?.data?.message || fallbackMessage;
 };
 
 export const getSignupErrorMessage = (error: unknown): string => {
