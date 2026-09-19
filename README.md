@@ -1,9 +1,9 @@
 # GlobalNomad
 
-> Codeit 프론트엔드 부트캠프 4기 팀 프로젝트([원본 레포](https://github.com/Codeit-FE19-Part4-Team6/GlobalNomad.git))를 포크하여,
+> Codeit 프론트엔드 부트캠프 팀 프로젝트([원본 레포](https://github.com/Codeit-FE19-Part4-Team6/GlobalNomad.git))를 포크하여,
 > 포트폴리오 정리를 위해 개인적으로 리팩토링을 추가한 레포입니다.
 
-다양한 체험 활동을 검색하고 예약할 수 있는 **체험 예약 플랫폼** GlobalNomad의 프론트엔드입니다.
+다양한 체험 활동을 검색하고 예약할 수 있는 **체험 예약 플랫폼** GlobalNomad입니다.
 사용자는 원하는 체험을 탐색·예약하고, 체험 제공자는 자신의 체험을 등록·관리할 수 있는 React 웹 애플리케이션입니다.
 
 - 🔗 팀 프로젝트 원본 레포: https://github.com/Codeit-FE19-Part4-Team6/GlobalNomad.git
