@@ -6,7 +6,7 @@ import 'react-day-picker/dist/style.css';
 
 import { useDropdown } from '@/hooks/useDropdown';
 import { ArrowDown, Calendar } from '@/assets/icons';
-import { dayPickerKoreanProps } from '@/utils/dateUtils';
+import { dayPickerKoreanProps, toShortYmd } from '@/utils/dateUtils';
 
 function formatDate(date?: Date | string | null) {
   if (!date) {
@@ -19,11 +19,7 @@ function formatDate(date?: Date | string | null) {
     return null;
   }
 
-  const yy = parsed.getFullYear().toString().slice(-2);
-  const mm = String(parsed.getMonth() + 1).padStart(2, '0');
-  const dd = String(parsed.getDate()).padStart(2, '0');
-
-  return `${yy}/${mm}/${dd}`;
+  return toShortYmd(parsed);
 }
 
 function DateInput({ value }: { value?: Date }) {

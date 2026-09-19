@@ -4,7 +4,7 @@ import { useProfileImageStore } from '@/stores/profileImageStore';
 import { PrimaryButton } from '@/components/common/button';
 import { PasswordInput, TextInput } from '@/components/common/input';
 import Title from '@/components/common/Title';
-import { Burger, Delete } from '@/assets/icons';
+import MyPageMobileToggle from '@/components/common/MyPageMobileToggle';
 import { useEditMyInfoMutation } from '@/hooks/queries/useEditMyInfoMutation';
 import { uploadImageToServer } from '@/apis/upload';
 import type { User, UserEditRequest } from '@/apis/type';
@@ -97,17 +97,11 @@ export default function MyProfilePage({ mobileOpen, setMobileOpen }: Props) {
     <form
       onSubmit={handleSubmit(onSubmit)}
       className='flex w-full max-w-160 flex-col gap-5 md:gap-6'>
-      {!mobileOpen ? (
-        <Burger
-          className='z-80 block h-6 w-6 cursor-pointer text-gray-900 md:hidden'
-          onClick={() => setMobileOpen(true)}
-        />
-      ) : (
-        <Delete
-          className='z-80 mb-1 ml-3 block h-3 w-3 cursor-pointer text-gray-900 md:hidden'
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      <MyPageMobileToggle
+        mobileOpen={mobileOpen}
+        setMobileOpen={setMobileOpen}
+        burgerClassName='z-80 block h-6 w-6 cursor-pointer text-gray-900 md:hidden'
+      />
 
       <div className='flex flex-col items-start gap-2.5 py-2.5'>
         <Title as='h3' size='xl' weight='bold'>

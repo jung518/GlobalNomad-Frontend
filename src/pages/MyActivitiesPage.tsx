@@ -1,12 +1,14 @@
 import Card from '@/components/common/card';
 import Title from '@/components/common/Title';
-import { Burger, Delete, Earth } from '@/assets/icons';
+import { Earth } from '@/assets/icons';
 import { useNavigate } from 'react-router-dom';
 import { PrimaryButton } from '@/components/common/button';
 import CancelReservationModal from '@/components/common/modal/CancelReservationModal';
-import { useEffect, useRef, useState } from 'react';
+import MyPageMobileToggle from '@/components/common/MyPageMobileToggle';
+import { useState } from 'react';
 import { useDeleteActivityMutation } from '@/hooks/queries/useDeleteActivityMutation';
 import { useMyActivitiesInfinite } from '@/hooks/queries/useMyActivitiesInfinite';
+import { useInfiniteScrollObserver } from '@/hooks/useInfiniteScrollObserver';
 
 type Props = {
   mobileOpen: boolean;
@@ -21,26 +23,7 @@ export default function MyExperiencesPage({ setMobileOpen, mobileOpen }: Props) 
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useMyActivitiesInfinite();
   const activities = data?.pages.flatMap((page) => page.activities) ?? [];
-  const bottomRef = useRef<HTMLDivElement | null>(null);
-
-  // IntersectionObserver를 이용한 무한 스크롤
-  useEffect(() => {
-    if (!bottomRef.current || !hasNextPage) {
-      return;
-    }
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 1 }
-    );
-
-    observer.observe(bottomRef.current);
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
+  const bottomRef = useInfiniteScrollObserver({ hasNextPage, isFetchingNextPage, fetchNextPage });
 
   // 삭제 버튼 클릭
   const handleDelete = (id: number) => {
@@ -69,17 +52,7 @@ export default function MyExperiencesPage({ setMobileOpen, mobileOpen }: Props) 
 
   return (
     <div className='flex w-full max-w-160 flex-col gap-3.5'>
-      {!mobileOpen ? (
-        <Burger
-          className='z-80 block cursor-pointer text-gray-900 md:hidden'
-          onClick={() => setMobileOpen(true)}
-        />
-      ) : (
-        <Delete
-          className='z-80 mb-1 ml-3 block h-3 w-3 cursor-pointer text-gray-900 md:hidden'
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      <MyPageMobileToggle mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <div className='mb-7.5 flex flex-col gap-3 py-2.5 md:flex-row md:items-center md:justify-between'>
         <div className='flex flex-col gap-2.5'>
           <Title as='h3' size='xl' weight='bold'>

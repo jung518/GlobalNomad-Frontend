@@ -1,15 +1,17 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import Card from '@/components/common/card';
 import CancelReservationModal from '@/components/common/modal/CancelReservationModal';
 import ReviewModal from '@/components/common/modal/ReviewModal';
 import { FilterButton, PrimaryButton } from '@/components/common/button';
 import Title from '@/components/common/Title';
-import { Burger, Delete, Earth } from '@/assets/icons';
+import { Earth } from '@/assets/icons';
+import MyPageMobileToggle from '@/components/common/MyPageMobileToggle';
 import type { MyReservationsResponse } from '@/apis/type';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useMyReservationsInfinite } from '@/hooks/queries/useMyReservationsQuery';
 import { useCancelReservationMutation } from '@/hooks/queries/useCancelReservationMutation';
 import { useReviewReservationMutation } from '@/hooks/queries/useReviewReservationMutation';
+import { useInfiniteScrollObserver } from '@/hooks/useInfiniteScrollObserver';
 
 const STATUS_LIST = ['confirmed', 'canceled', 'declined', 'completed', 'pending'] as const;
 
@@ -69,7 +71,7 @@ export default function ReservationPage({ setMobileOpen, mobileOpen }: Props) {
 
   const { data, isLoading, isError, fetchNextPage, hasNextPage, isFetchingNextPage } =
     useMyReservationsInfinite(selected);
-  const bottomRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useInfiniteScrollObserver({ hasNextPage, isFetchingNextPage, fetchNextPage });
   const allFetchedReservations = data?.pages.flatMap((page) => page.reservations) ?? [];
   const { data: allData } = useMyReservationsInfinite('all');
   const hasAnyReservation = allData?.pages.some((page) => page.reservations.length > 0) ?? false;
@@ -100,23 +102,6 @@ export default function ReservationPage({ setMobileOpen, mobileOpen }: Props) {
       // 같은 날짜면 시작시간 최신순 (DESC)
       return b.startTime.localeCompare(a.startTime);
     });
-
-  // IntersectionObserver를 이용한 무한 스크롤
-  useEffect(() => {
-    if (!bottomRef.current || !hasNextPage) {
-      return;
-    }
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && !isFetchingNextPage) {
-          fetchNextPage();
-        }
-      },
-      { threshold: 1 }
-    );
-    observer.observe(bottomRef.current);
-    return () => observer.disconnect();
-  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   // 후기 작성 버튼 클릭
   const handleReviewClick = (reservation: ReservationItem) => {
@@ -165,17 +150,7 @@ export default function ReservationPage({ setMobileOpen, mobileOpen }: Props) {
 
   return (
     <div className='flex w-full max-w-160 flex-col gap-3.5'>
-      {!mobileOpen ? (
-        <Burger
-          className='z-80 block cursor-pointer text-gray-900 md:hidden'
-          onClick={() => setMobileOpen(true)}
-        />
-      ) : (
-        <Delete
-          className='z-80 mb-1 ml-3 block h-3 w-3 cursor-pointer text-gray-900 md:hidden'
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      <MyPageMobileToggle mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <div className='flex max-w-160 flex-col items-start gap-2.5 py-2.5'>
         <Title as='h3' size='xl' weight='bold'>
           예약내역

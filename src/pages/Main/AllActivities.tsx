@@ -1,5 +1,4 @@
 import { useNavigate } from 'react-router-dom';
-import Card from '@/components/common/card';
 import { FilterButton } from '@/components/common/button/FilterButton';
 import Pagination from '@/components/common/pagination';
 import Title from '@/components/common/Title';
@@ -8,6 +7,7 @@ import Dropdown from '@/components/common/dropdown/Dropdown';
 import DropdownTrigger from '@/components/common/dropdown/DropdownTrigger';
 import DropdownList from '@/components/common/dropdown/DropdownList';
 import DropdownItem from '@/components/common/dropdown/DropdownItem';
+import ActivityGridCard from '@/components/ActivityGridCard';
 import type { Activity, ActivityCategory } from '@/apis/type';
 
 // 카테고리 타입 정의
@@ -136,14 +136,7 @@ export default function AllActivities({
               key={activity.id}
               onClick={() => navigate(`/activities/${activity.id}`)}
               className='cursor-pointer'>
-              <Card variant='grid'>
-                <Card.Image src={activity.bannerImageUrl} alt={activity.title} />
-                <Card.Content>
-                  <Card.Title title={activity.title} />
-                  <Card.Rating rating={activity.rating} reviewCount={activity.reviewCount} />
-                  <Card.Price price={activity.price} />
-                </Card.Content>
-              </Card>
+              <ActivityGridCard activity={activity} />
             </div>
           ))}
         </div>

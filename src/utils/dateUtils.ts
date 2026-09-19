@@ -25,3 +25,12 @@ export const dayPickerKoreanProps = {
     formatCaption: formatKoreanCaption,
   },
 };
+
+/**
+ * Date -> "YYYY-MM-DD" (로컬 타임존 기준)
+ * toISOString()은 UTC로 변환되어 자정 부근 날짜가 하루 밀릴 수 있으므로 사용하지 않는다.
+ */
+export const toYmd = (date: Date): string => format(date, 'yyyy-MM-dd');
+
+/** Date -> "yy/MM/dd" (로컬 타임존 기준) */
+export const toShortYmd = (date: Date): string => format(date, 'yy/MM/dd');

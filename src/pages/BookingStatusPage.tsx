@@ -1,8 +1,9 @@
 import { useMemo, useState, useEffect } from 'react';
 import { DayPicker } from 'react-day-picker';
 
-import { ArrowDown, Burger, Delete } from '@/assets/icons';
+import { ArrowDown } from '@/assets/icons';
 import Title from '@/components/common/Title';
+import MyPageMobileToggle from '@/components/common/MyPageMobileToggle';
 
 import Dropdown from '@/components/common/dropdown/Dropdown';
 import DropdownTrigger from '@/components/common/dropdown/DropdownTrigger';
@@ -16,8 +17,7 @@ import { eventType, EventBadge } from '@/components/common/badge/EventBadge';
 import type { MyActivitySchedulesResponse } from '@/apis/type';
 import ReservationInfoModal from '@/components/common/modal/ReservationCard/ReservationInfoModal';
 import { useReservedSchedule } from '@/hooks/useReservedSchedule';
-import { ko } from 'date-fns/locale';
-import { format } from 'date-fns';
+import { dayPickerKoreanProps, toYmd } from '@/utils/dateUtils';
 
 //수정
 type PopoverState = {
@@ -38,16 +38,6 @@ type DayCounts = {
   [eventType.approved]: number;
   [eventType.completed]: number;
 };
-//서버와  date 형태 일치
-//DayPicker(Date 객체)에서 받은 날짜를 서버에서 사용하는 "YYYY-MM-DD" 문자열로 변환하여
-// 서버 데이터와 매칭 및 API 요청에 사용하기 위한 함수
-const toYmd = (date: Date) => {
-  const y = date.getFullYear();
-  const m = String(date.getMonth() + 1).padStart(2, '0');
-  const d = String(date.getDate()).padStart(2, '0');
-  return `${y}-${m}-${d}`;
-};
-
 //인포모달에 보여줄 한국식 날짜
 //데이트 피커의date 를 바아서 toYmd(date)를 거쳐서 뱃지에 날짜 저장 뱃지클릭하면 해당날짜가 모달에 출력
 const ymdToKorean = (ymd: string) => {
@@ -188,17 +178,7 @@ export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) 
 
   return (
     <div className='flex min-h-0 flex-col gap-3.5'>
-      {!mobileOpen ? (
-        <Burger
-          className='z-80 block cursor-pointer text-gray-900 md:hidden'
-          onClick={() => setMobileOpen(true)}
-        />
-      ) : (
-        <Delete
-          className='z-80 mb-1 ml-3 block h-3 w-3 cursor-pointer text-gray-900 md:hidden'
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      <MyPageMobileToggle mobileOpen={mobileOpen} setMobileOpen={setMobileOpen} />
       <div className='flex flex-col gap-7.5 py-2.5'>
         <div className='flex flex-col gap-2.5'>
           <Title as='h3' size='xl' weight='bold'>
@@ -254,10 +234,7 @@ export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) 
         {/* ✅ 달력 */}
         <div className='h-screen min-h-0 flex-1'>
           <DayPicker
-            locale={ko}
-            formatters={{
-              formatCaption: (date) => format(date, 'yyyy년 M월', { locale: ko }),
-            }}
+            {...dayPickerKoreanProps}
             className='relative h-full w-full'
             month={monthDate}
             onMonthChange={setMonthDate}

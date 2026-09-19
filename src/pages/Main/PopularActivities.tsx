@@ -1,8 +1,8 @@
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import Card from '@/components/common/card';
 import Title from '@/components/common/Title';
 import { ArrowRight } from '@/assets/icons';
+import ActivityGridCard from '@/components/ActivityGridCard';
 import type { Activity } from '@/apis/type';
 
 // 슬라이더 설정 상수
@@ -93,14 +93,7 @@ export default function PopularActivities({ activities }: PopularActivitiesProps
               key={activity.id}
               onClick={() => navigate(`/activities/${activity.id}`)}
               className='w-[calc((100%-16px)/2)] shrink-0 cursor-pointer min-[460px]:w-[calc((100%-32px)/3)] sm:w-[calc((100%-24px)/2.5)] lg:w-70.5'>
-              <Card variant='grid'>
-                <Card.Image src={activity.bannerImageUrl} alt={activity.title} />
-                <Card.Content>
-                  <Card.Title title={activity.title} />
-                  <Card.Rating rating={activity.rating} reviewCount={activity.reviewCount} />
-                  <Card.Price price={activity.price} />
-                </Card.Content>
-              </Card>
+              <ActivityGridCard activity={activity} />
             </div>
           ))}
         </div>

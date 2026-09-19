@@ -2,7 +2,7 @@ import 'react-day-picker/dist/style.css';
 import '@/styles/day-picker.css';
 import { useState, useMemo, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { isDateAvailable } from '@/utils/dateUtils';
+import { isDateAvailable, toYmd } from '@/utils/dateUtils';
 import Title from '@/components/common/Title';
 import { PrimaryButton } from '@/components/common/button/PrimaryButton';
 import { TimeSelectButton } from '@/components/common/button/TimeSelectButton';
@@ -86,10 +86,7 @@ function ActivityDetailPage() {
       return [];
     }
     // 타임존 이슈 방지: 로컬 날짜를 YYYY-MM-DD 형식으로 변환
-    const year = selectedDate.getFullYear();
-    const month = String(selectedDate.getMonth() + 1).padStart(2, '0');
-    const day = String(selectedDate.getDate()).padStart(2, '0');
-    const dateStr = `${year}-${month}-${day}`;
+    const dateStr = toYmd(selectedDate);
     const schedule = schedules.find((s: ActivityScheduleResponse) => s.date === dateStr);
     return schedule?.times || [];
   }, [schedules, selectedDate]);
