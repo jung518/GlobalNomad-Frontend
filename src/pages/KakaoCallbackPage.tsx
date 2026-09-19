@@ -7,6 +7,7 @@ import { KAKAO_REDIRECT_URI } from '@/libs/config';
 import { isAxiosError } from 'axios';
 import { useSnackBar } from '@/providers/SnackBarProvider';
 import { generateKakaoNickname } from '@/utils/generateKakaoNickname';
+import { getApiErrorMessage } from '@/utils/errorMessages';
 import { Spinner } from '@/components/common/Spinner';
 import { ROUTES } from '@/constants/routes';
 import { STORAGE_KEYS } from '@/constants/storageKeys';
@@ -67,11 +68,9 @@ const KakaoCallbackPage = () => {
       }
 
       sessionStorage.removeItem(STORAGE_KEYS.KAKAO_SIGNUP_MODE);
-      const errorMessage =
-        isAxiosError(error) && error.response?.data?.message
-          ? error.response.data.message
-          : '카카오 처리에 실패했습니다.';
-      showSnack(errorMessage, 'error', { duration: 1000 });
+      showSnack(getApiErrorMessage(error, '카카오 처리에 실패했습니다.'), 'error', {
+        duration: 1000,
+      });
       navigate(ROUTES.login, { replace: true });
     };
 

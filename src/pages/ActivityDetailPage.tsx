@@ -28,6 +28,7 @@ import { ArrowDown } from '@/assets/icons';
 import { truncateBySentence } from '@/utils/truncateBySentence';
 import { dayPickerKoreanProps } from '@/utils/dateUtils';
 import { ROUTES } from '@/constants/routes';
+import { getApiErrorMessage } from '@/utils/errorMessages';
 
 const SHORT_DESCRIPTION_MAX_LENGTH = 100;
 
@@ -137,9 +138,7 @@ function ActivityDetailPage() {
       // 바텀시트 닫기 (AlertModal이 가려지지 않도록)
       setIsBottomSheetOpen(false);
       // API 응답에서 에러 메시지 추출, 없으면 기본 메시지 표시
-      const errorMessage =
-        (error as { response?: { data?: { message?: string } } })?.response?.data?.message ||
-        '이미 예약된 시간입니다.';
+      const errorMessage = getApiErrorMessage(error, '이미 예약된 시간입니다.');
       setAlertModal({ isOpen: true, message: errorMessage });
     },
   });

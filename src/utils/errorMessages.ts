@@ -1,8 +1,23 @@
 // src/utils/errorMessages.ts
 import { isAxiosError } from 'axios';
 
-export const getSignupErrorMessage = (error: unknown): string => {
+/**
+ * axios 에러 응답에서 서버가 내려준 메시지를 추출한다.
+ * axios 에러가 아니거나 메시지가 없으면 fallbackMessage를 반환한다.
+ *
+ * KakaoCallbackPage / ActivityDetailPage 등 여러 곳에서 각자
+ * "isAxiosError 체크 -> response.data.message 추출"을 따로 구현하고 있던 것을
+ * 하나로 모은 것 (그 중 한 곳은 isAxiosError 체크 없이 타입 단언만으로 처리하고 있었음).
+ */
+export const getApiErrorMessage = (error: unknown, fallbackMessage: string): string => {
   if (!isAxiosError<{ message?: string }>(error)) {
+    return fallbackMessage;
+  }
+  return error.response?.data?.message ?? fallbackMessage;
+};
+
+export const getSignupErrorMessage = (error: unknown): string => {
+  if (!isAxiosError(error)) {
     return '회원가입에 실패했습니다.';
   }
 
@@ -17,12 +32,12 @@ export const getSignupErrorMessage = (error: unknown): string => {
     case 500:
       return '서버 오류가 발생했습니다.';
     default:
-      return error.response?.data?.message || '회원가입에 실패했습니다.';
+      return getApiErrorMessage(error, '회원가입에 실패했습니다.');
   }
 };
 
 export const getLoginErrorMessage = (error: unknown): string => {
-  if (!isAxiosError<{ message?: string }>(error)) {
+  if (!isAxiosError(error)) {
     return '로그인에 실패했습니다.';
   }
   const status = error.response?.status;
@@ -35,7 +50,7 @@ export const getLoginErrorMessage = (error: unknown): string => {
     case 500:
       return '서버 오류가 발생했습니다.';
     default:
-      return error.response?.data?.message || '로그인에 실패했습니다.';
+      return getApiErrorMessage(error, '로그인에 실패했습니다.');
   }
 };
 
@@ -58,20 +73,22 @@ export const resolveActivityMutationError = (
   error: unknown,
   toastFallbackMessage: string
 ): ActivityMutationErrorResult => {
-  if (!isAxiosError<{ message?: string }>(error)) {
+  if (!isAxiosError(error)) {
     return { kind: 'toast', message: toastFallbackMessage };
   }
 
   const status = error.response?.status;
-  const serverMessage = error.response?.data?.message;
 
   if (status === 401) {
     return { kind: 'alert', message: '권한이 없습니다. 다시 로그인해주세요.' };
   }
 
   if (status === 400 || status === 403 || status === 404 || status === 409) {
-    return { kind: 'alert', message: serverMessage ?? '요청 처리 중 오류가 발생했습니다.' };
+    return {
+      kind: 'alert',
+      message: getApiErrorMessage(error, '요청 처리 중 오류가 발생했습니다.'),
+    };
   }
 
-  return { kind: 'alert', message: serverMessage ?? '알 수 없는 오류가 발생했습니다.' };
+  return { kind: 'alert', message: getApiErrorMessage(error, '알 수 없는 오류가 발생했습니다.') };
 };
