@@ -152,8 +152,7 @@ export default function EditActivityPage() {
           alert(result.message);
         },
       });
-    } catch (e) {
-      console.log('❌ edit preprocess error:', e);
+    } catch {
       alert('수정 처리 중 오류가 발생했습니다.');
     }
   };

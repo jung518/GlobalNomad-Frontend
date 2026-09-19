@@ -46,31 +46,3 @@ export const getErrorMessage = (error: any): string | undefined => {
   }
   return undefined;
 };
-
-/**
- * 이메일 중복 체크 (API 호출)
- */
-export const checkEmailDuplicate = async (email: string) => {
-  try {
-    // TODO: backend endpoint TBD (email availability check)
-    const res = await fetch(`/api/availability/email?email=${email}`);
-    if (!res.ok) {
-      throw new Error('이메일 중복 확인 중 오류가 발생했습니다.');
-    }
-    const data = await res.json();
-    return data.isDuplicate;
-  } catch (error) {
-    console.error('이메일 중복 체크 실패:', error);
-    throw error;
-  }
-};
-
-/**
- * 폼 데이터 검증
- */
-export interface SignupFormData {
-  email: string;
-  nickname: string;
-  password: string;
-  passwordConfirm: string;
-}
