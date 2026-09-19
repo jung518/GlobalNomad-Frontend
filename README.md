@@ -1,6 +1,6 @@
 # GlobalNomad
 
-> Codeit 프론트엔드 부트캠프 팀 프로젝트([원본 레포](https://github.com/Codeit-FE19-Part4-Team6/GlobalNomad.git))를 포크하여,
+> Codeit 부트캠프 팀 프로젝트([원본 레포](https://github.com/Codeit-FE19-Part4-Team6/GlobalNomad.git))를 포크하여,
 > 포트폴리오 정리를 위해 개인적으로 리팩토링을 추가한 레포입니다.
 
 다양한 체험 활동을 검색하고 예약할 수 있는 **체험 예약 플랫폼** GlobalNomad입니다.
@@ -23,8 +23,8 @@
 ## Tech Stack
 
 - **Framework**: React 19 · Vite 7
-- **Routing**: React Router v7 (`createBrowserRouter`)
-- **Language**: TypeScript (Strict Mode)
+- **Routing**: React Router 
+- **Language**: TypeScript 
 - **State & Data Fetching**: TanStack Query, Zustand, Axios
 - **Styling**: Tailwind CSS v4 · tailwind-merge · tailwind-variants · clsx
 - **Form**: React Hook Form
