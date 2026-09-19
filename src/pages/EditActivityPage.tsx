@@ -13,13 +13,37 @@ import { useUnsavedChangesBlocker } from '@/hooks/useUnsavedChangesBlocker';
 import { resolveActivityMutationError } from '@/utils/errorMessages';
 import { toYmd } from '@/utils/dateUtils';
 import { ROUTES } from '@/constants/routes';
+import type { ScheduleRow } from '@/types/ScheduleRow';
+
+/** 폼의 스케줄 행들을 서버가 갖고 있던 원래 스케줄과 비교해 추가/삭제 대상을 계산 */
+function buildScheduleDiff(originalScheduleIds: number[], rows: ScheduleRow[]) {
+  const currentServerIds = rows
+    .map((row) => row.serverTimeId)
+    .filter((serverTimeId): serverTimeId is number => typeof serverTimeId === 'number');
+
+  // 원래는 있었는데 지금 rows엔 없는 것 = 삭제 대상
+  const scheduleIdsToRemove = originalScheduleIds.filter(
+    (scheduleId) => !currentServerIds.includes(scheduleId)
+  );
+
+  // serverTimeId가 없는 행 = 새로 추가한 스케줄
+  const schedulesToAdd = rows
+    .filter((row) => !row.serverTimeId)
+    .map((row) => ({
+      date: toYmd(row.date),
+      startTime: row.startTime,
+      endTime: row.endTime,
+    }));
+
+  return { scheduleIdsToRemove, schedulesToAdd };
+}
 
 export default function EditActivityPage() {
   const navigate = useNavigate();
   const { activityId } = useParams();
   const id = activityId ? Number(activityId) : undefined;
 
-  const { data, isLoading, isError } = useGetActivityDetail(id);
+  const { data: activity, isLoading, isError } = useGetActivityDetail(id);
   const { mutate: patchMutate, isPending } = usePatchActivity(id ?? 0);
   const [isDirty, setIsDirty] = useState(false);
   const { showSnack } = useSnackBar();
@@ -27,30 +51,30 @@ export default function EditActivityPage() {
     useUnsavedChangesBlocker(isDirty);
 
   const initialData: ActivityFormInitialData | undefined = useMemo(() => {
-    if (!data) {
+    if (!activity) {
       return undefined;
     }
 
     return {
-      title: data.title ?? '',
-      category: data.category as ActivityCategory,
-      description: data.description ?? '',
-      price: data.price ?? 0,
-      address: data.address ?? '',
-      rows: data.schedules.map((s) => ({
-        uiId: String(s.id),
-        date: new Date(`${s.date}T00:00:00`),
-        startTime: s.startTime,
-        endTime: s.endTime,
-        serverTimeId: s.id,
+      title: activity.title ?? '',
+      category: activity.category as ActivityCategory,
+      description: activity.description ?? '',
+      price: activity.price ?? 0,
+      address: activity.address ?? '',
+      rows: activity.schedules.map((schedule) => ({
+        uiId: String(schedule.id),
+        date: new Date(`${schedule.date}T00:00:00`),
+        startTime: schedule.startTime,
+        endTime: schedule.endTime,
+        serverTimeId: schedule.id,
       })),
-      bannerImageUrl: data.bannerImageUrl ?? '',
-      subImageUrls: (data.subImages ?? []).map((img) => ({
+      bannerImageUrl: activity.bannerImageUrl ?? '',
+      subImageUrls: (activity.subImages ?? []).map((img) => ({
         id: img.id,
         imageUrl: img.imageUrl,
       })),
     };
-  }, [data]);
+  }, [activity]);
 
   // id 자체가 잘못된 경우 (NaN 포함) -> 404
   if (!id || Number.isNaN(id) || id <= 0) {
@@ -61,7 +85,7 @@ export default function EditActivityPage() {
   if (isLoading) {
     return <div>로딩중...</div>;
   }
-  if (isError || !data) {
+  if (isError || !activity) {
     return <NotFoundPage />;
   }
 
@@ -82,24 +106,11 @@ export default function EditActivityPage() {
           : [];
 
       // schedules add/remove 계산
-      // 서버에서 준 스케줄 아이디
-      const originalIds = data.schedules.map((s) => s.id);
-
-      const currentServerIds = values.rows
-        .map((r: any) => r.serverTimeId)
-        .filter((v: any) => typeof v === 'number') as number[]; //number 만
-
-      // 원래는 있었는데 지금은 없는 것들 = 삭제 대상
-      const scheduleIdsToRemove = originalIds.filter((sid) => !currentServerIds.includes(sid));
-
-      // 지금 rows 중 serverTimeId 없는 것들 = 새로 추가한 스케줄
-      const schedulesToAdd = values.rows
-        .filter((r: any) => !r.serverTimeId)
-        .map((r) => ({
-          date: toYmd(r.date),
-          startTime: r.startTime,
-          endTime: r.endTime,
-        }));
+      const originalScheduleIds = activity.schedules.map((schedule) => schedule.id);
+      const { scheduleIdsToRemove, schedulesToAdd } = buildScheduleDiff(
+        originalScheduleIds,
+        values.rows
+      );
 
       // 4) 최종 PATCH payload
       const payload: MyActivityEditRequest = {
@@ -113,8 +124,8 @@ export default function EditActivityPage() {
         subImageIdsToRemove: values.removedSubImageIds,
         subImageUrlsToAdd: subImageUrlsToAdd,
 
-        scheduleIdsToRemove: scheduleIdsToRemove as any,
-        schedulesToAdd: schedulesToAdd as any,
+        scheduleIdsToRemove,
+        schedulesToAdd,
       };
 
       // 5) PATCH

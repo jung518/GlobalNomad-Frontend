@@ -23,6 +23,58 @@ const KakaoCallbackPage = () => {
     }
     hasProcessed.current = true;
 
+    //카카오 회원가입: 랜덤 닉네임으로 계정 생성 + 토큰 저장 + 홈으로 이동
+    const signUpWithKakao = async (code: string) => {
+      const kakaoNickname = generateKakaoNickname();
+
+      const signUpResponse = await http.post('/oauth/sign-up/kakao', {
+        nickname: kakaoNickname,
+        token: code,
+        redirectUri: KAKAO_REDIRECT_URI,
+      });
+
+      sessionStorage.removeItem(STORAGE_KEYS.KAKAO_SIGNUP_MODE);
+      token.setTokens(signUpResponse.data.accessToken, signUpResponse.data.refreshToken);
+      showSnack(`${kakaoNickname}님, 환영합니다! 닉네임은 언제든 수정할 수 있어요.`, 'success', {
+        duration: 1500,
+      });
+      navigate(ROUTES.home, { replace: true });
+    };
+
+    //카카오 로그인: 토큰 저장 + 홈으로 이동
+    const signInWithKakao = async (code: string) => {
+      const response = await http.post('/oauth/sign-in/kakao', {
+        token: code,
+        redirectUri: KAKAO_REDIRECT_URI,
+      });
+
+      token.setTokens(response.data.accessToken, response.data.refreshToken);
+      showSnack('로그인에 성공했습니다.', 'success');
+      navigate(ROUTES.home, { replace: true });
+    };
+
+    //회원가입/로그인 흐름 공통 에러 처리
+    const handleKakaoCallbackError = (error: unknown, isKakaoSignUpMode: boolean) => {
+      const isUnregisteredLoginAttempt =
+        isAxiosError(error) && error.response?.status === 403 && !isKakaoSignUpMode;
+
+      if (isUnregisteredLoginAttempt) {
+        // 로그인 모드에서 아직 가입되지 않은 사용자 -> 회원가입 유도
+        showSnack('가입되지 않은 사용자입니다. 회원가입을 진행해주세요.', 'error', {
+          onClose: () => navigate(ROUTES.signup, { replace: true }),
+        });
+        return;
+      }
+
+      sessionStorage.removeItem(STORAGE_KEYS.KAKAO_SIGNUP_MODE);
+      const errorMessage =
+        isAxiosError(error) && error.response?.data?.message
+          ? error.response.data.message
+          : '카카오 처리에 실패했습니다.';
+      showSnack(errorMessage, 'error', { duration: 1000 });
+      navigate(ROUTES.login, { replace: true });
+    };
+
     const handleKakaoCallback = async () => {
       const urlParams = new URLSearchParams(window.location.search);
       const code = urlParams.get('code');
@@ -34,64 +86,16 @@ const KakaoCallbackPage = () => {
         return;
       }
 
-      // 회원가입 모드인지 확인
       const isKakaoSignUpMode = sessionStorage.getItem(STORAGE_KEYS.KAKAO_SIGNUP_MODE) === 'true';
-      console.log('✅isKakaoSignUpMode:', isKakaoSignUpMode);
 
       try {
-        const requestData = {
-          token: code,
-          redirectUri: KAKAO_REDIRECT_URI,
-        };
-
         if (isKakaoSignUpMode) {
-          const kakaoNickname = generateKakaoNickname();
-
-          const signUpResponse = await http.post('/oauth/sign-up/kakao', {
-            nickname: kakaoNickname,
-            ...requestData,
-          });
-
-          // 세션 스토리지 정리
-          sessionStorage.removeItem(STORAGE_KEYS.KAKAO_SIGNUP_MODE);
-          console.log('✅🔥isKakaoSignUpMode:', isKakaoSignUpMode);
-
-          token.setTokens(signUpResponse.data.accessToken, signUpResponse.data.refreshToken);
-          showSnack(
-            `${kakaoNickname}님, 환영합니다! 닉네임은 언제든 수정할 수 있어요.`,
-            'success',
-            { duration: 1500 }
-          );
-          navigate(ROUTES.home, { replace: true });
+          await signUpWithKakao(code);
         } else {
-          // 로그인 모드
-          const response = await http.post('/oauth/sign-in/kakao', requestData);
-
-          token.setTokens(response.data.accessToken, response.data.refreshToken);
-          showSnack('로그인에 성공했습니다.', 'success');
-          navigate(ROUTES.home, { replace: true });
+          await signInWithKakao(code);
         }
       } catch (error) {
-        if (isAxiosError(error) && error.response?.status === 403 && !isKakaoSignUpMode) {
-          // 로그인 모드에서 가입되지 않은 사용자
-          console.log('😀isKakaoSignUpMode:', isKakaoSignUpMode);
-
-          showSnack('가입되지 않은 사용자입니다. 회원가입을 진행해주세요.', 'error', {
-            onClose: () => navigate(ROUTES.signup, { replace: true }),
-          });
-        } else {
-          // 에러 시 세션 정리
-          sessionStorage.removeItem(STORAGE_KEYS.KAKAO_SIGNUP_MODE);
-          console.log('😀🔥isKakaoSignUpMode:', isKakaoSignUpMode);
-
-          const errorMessage =
-            isAxiosError(error) && error.response?.data?.message
-              ? error.response.data.message
-              : '카카오 처리에 실패했습니다.';
-
-          showSnack(errorMessage, 'error', { duration: 1000 });
-          navigate(ROUTES.login, { replace: true });
-        }
+        handleKakaoCallbackError(error, isKakaoSignUpMode);
       } finally {
         setIsLoading(false);
       }

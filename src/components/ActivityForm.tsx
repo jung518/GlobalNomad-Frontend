@@ -114,6 +114,73 @@ type ActivityFormProps = {
   titleText: string;
 };
 
+//dirty 여부 비교에 쓰이는 폼 상태 스냅샷의 입력값
+type FormSnapshotInput = {
+  title: string;
+  category: string;
+  description: string;
+  price: string;
+  address: string;
+  rows: ScheduleRow[];
+  existingBannerUrl: string;
+  existingSubImageUrls: ExistingSubImage[];
+  removedSubImageIds: number[];
+  bannerCount: number;
+  introCount: number;
+};
+
+//스케줄 행에서 날짜만 "YYYY-MM-DD"로 비교 (시간까지 포함하면 같은 날짜도 다르게 감지됨)
+const toScheduleSnapshotRow = (row: ScheduleRow) => ({
+  date: row.date ? row.date.toISOString().split('T')[0] : null,
+  startTime: row.startTime,
+  endTime: row.endTime,
+  serverTimeId: row.serverTimeId ?? null,
+});
+
+//현재 폼 상태를 dirty 비교용 문자열로 직렬화
+const buildFormSnapshot = ({
+  title,
+  category,
+  description,
+  price,
+  address,
+  rows,
+  existingBannerUrl,
+  existingSubImageUrls,
+  removedSubImageIds,
+  bannerCount,
+  introCount,
+}: FormSnapshotInput) =>
+  JSON.stringify({
+    title,
+    category,
+    description,
+    price,
+    address,
+    rows: rows.map(toScheduleSnapshotRow),
+    existingBannerUrl, //서버에서 보내준 기존 배너 url, 사진이 변경되면 url이 변경되서 변화 감지
+    existingSubImageUrls, //서버에서 보내준 서브 url, 서브 url중 하나라도 바뀌면 변화 감지
+    removedSubImageIds, // edit 페이지일때 서버에서 준 서브이미지가 삭제되면 해당 id로 변화 감지
+    bannerCount, // 배너이미지의 카운트 감지 0 > 1 , 1 > 0 기존과 갯수가 같으면 감지 못함
+    introCount, // 서브이미지의 카운트 감지 기존 갯수와 같으면 감지 못함
+  });
+
+//edit 모드로 마운트될 때의 "초기값" 스냅샷 (buildFormSnapshot과 동일한 직렬화 형식 유지)
+const buildInitialFormSnapshot = (data: ActivityFormInitialData) =>
+  buildFormSnapshot({
+    title: data.title ?? '',
+    category: data.category ?? '',
+    description: data.description ?? '',
+    price: String(data.price ?? ''),
+    address: data.address ?? '',
+    rows: data.rows ?? [],
+    existingBannerUrl: data.bannerImageUrl ?? '',
+    existingSubImageUrls: data.subImageUrls ?? [],
+    removedSubImageIds: [], // 빈 배열: 삭제된 서브이미지가 생기면 변화 감지
+    bannerCount: 0, //마운트 되자마자 사용자가 새로운 파일을 아직 첨부 안해서 0
+    introCount: 0,
+  });
+
 export default function ActivityForm({
   mode,
   initialData,
@@ -124,7 +191,7 @@ export default function ActivityForm({
   onDirtyChange,
 }: ActivityFormProps) {
   const [category, setCategory] = useState<string>('');
-  const [text, setText] = useState<string>('');
+  const [description, setDescription] = useState<string>('');
   const [price, setPrice] = useState('');
   const [address, setAddress] = useState('');
   const [draft, setDraft] = useState<ScheduleDraft>(createDraft());
@@ -146,48 +213,21 @@ export default function ActivityForm({
   const handleComplete = (data: Address) => {
     setAddress(data.address);
   };
-  //로컬스토리지에 저장할 value
 
-  //현재 폼 상태
-  const makeSnapshot = () =>
-    JSON.stringify({
+  //현재 폼 상태를 dirty 비교용 스냅샷으로 직렬화
+  const snapshotCurrentForm = () =>
+    buildFormSnapshot({
       title,
       category,
-      text,
+      description,
       price,
       address,
-      rows: rows.map((r) => ({
-        date: r.date ? r.date.toISOString().split('T')[0] : null, //(YYYY-MM-DD) 만 비교 [날짜T,시간Z] 그 중 날짜만
-        startTime: r.startTime,
-        endTime: r.endTime,
-        serverTimeId: (r as any).serverTimeId ?? null, //수정페이지이면 서버에서 보내준 row아이디
-      })),
-      existingBannerUrl, //서버에서 보내준 기존 배너 url, 사진이 변경되면 url이 변경되서 변화 감지
-      existingSubImageUrls, //서버에서 보내준 서브 url, 서브 url중 하나라도 바뀌면 변화 감지
-      removedSubImageIds, // edit 페이지일때 서버에서 준 서브이미지가 삭제되면 해당 id로 변화 감지
-      bannerCount: bannerImages.length, // 배너이미지의 카운트 감지 0 > 1 , 1 > 0 기존과 갯수가 같으면 감지 못함
-      introCount: introImages.length, // 서브이미지의 카운트 감지 기존 갯수와 같으면 감지 못함
-    });
-
-  //마운트 되자마자 상태
-  const makeSnapshotFromInitialData = (data: ActivityFormInitialData) =>
-    JSON.stringify({
-      title: data.title ?? '',
-      category: data.category ?? '',
-      text: data.description ?? '',
-      price: String(data.price ?? ''),
-      address: data.address ?? '',
-      rows: (data.rows ?? []).map((r) => ({
-        date: r.date ? r.date.toISOString().split('T')[0] : null,
-        startTime: r.startTime,
-        endTime: r.endTime,
-        serverTimeId: (r as any).serverTimeId ?? null,
-      })),
-      existingBannerUrl: data.bannerImageUrl ?? '',
-      existingSubImageUrls: data.subImageUrls ?? [],
-      removedSubImageIds: [], // 빈 배열 삭제되서 삭제 아이디가 담기면 변화 감지?
-      bannerCount: 0, //마운트 되자마자 사용자가 새로운 파일을 아직 첨부 안해서 0
-      introCount: 0,
+      rows,
+      existingBannerUrl,
+      existingSubImageUrls,
+      removedSubImageIds,
+      bannerCount: bannerImages.length,
+      introCount: introImages.length,
     });
 
   //등록페이지 에서 초기 기준점을 잡고 onDirtyChange를 false로 초기화
@@ -201,7 +241,7 @@ export default function ActivityForm({
       return;
     }
 
-    const snap = makeSnapshot();
+    const snap = snapshotCurrentForm();
     setInitialSnapshot(snap);
     onDirtyChange?.(false);
 
@@ -216,7 +256,7 @@ export default function ActivityForm({
 
     setTitle(initialData.title ?? '');
     setCategory(initialData.category ?? '');
-    setText(initialData.description ?? '');
+    setDescription(initialData.description ?? '');
     setPrice(String(initialData.price ?? ''));
     setAddress(initialData.address ?? '');
     setRows(initialData.rows ?? []);
@@ -228,7 +268,7 @@ export default function ActivityForm({
     setIntroImages([]);
     setDraft(createDraft());
 
-    const snap = makeSnapshotFromInitialData(initialData);
+    const snap = buildInitialFormSnapshot(initialData);
     setInitialSnapshot(snap);
     onDirtyChange?.(false);
   }, [initialData]);
@@ -237,14 +277,14 @@ export default function ActivityForm({
     if (!initialSnapshot) {
       return;
     }
-    const dirty = makeSnapshot() !== initialSnapshot;
+    const dirty = snapshotCurrentForm() !== initialSnapshot;
     onDirtyChange?.(dirty);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     initialSnapshot,
     title,
     category,
-    text,
+    description,
     price,
     address,
     rows,
@@ -261,13 +301,13 @@ export default function ActivityForm({
       title.trim().length > 0 &&
       title.length <= 25 &&
       category &&
-      text.trim().length <= 1000 &&
+      description.trim().length <= 1000 &&
       Number(price) > 0 &&
       Number(price) < 99999999999 &&
       address.trim().length > 0 &&
       rows.length > 0
     );
-  }, [title, category, text, price, address, rows.length]);
+  }, [title, category, description, price, address, rows.length]);
 
   // 이미지 add/remove
   const addBannerImage = (file: File) => {
@@ -307,9 +347,9 @@ export default function ActivityForm({
     setCategory(value);
   };
 
-  const onChangeText = (value: string) => {
-    const limitText = value.slice(0, MAX_CONTENT);
-    setText(limitText);
+  const onChangeDescription = (value: string) => {
+    const limitedDescription = value.slice(0, MAX_CONTENT);
+    setDescription(limitedDescription);
   };
 
   const formatNumber = (value: string) => {
@@ -417,7 +457,7 @@ export default function ActivityForm({
     const values: ActivityFormValues = {
       title,
       category: category as ActivityCategory,
-      description: text,
+      description,
       price: Number(price),
       address,
       rows,
@@ -478,8 +518,8 @@ export default function ActivityForm({
         <div className='flex flex-col gap-2.5'>
           <Label className='font-lg-bold text-gray-950'>설명</Label>
           <TextArea
-            value={text}
-            onChange={onChangeText}
+            value={description}
+            onChange={onChangeDescription}
             variant='default'
             placeholder='설명을 최대 1000자 입니다.'
           />

@@ -48,6 +48,29 @@ const ymdToKorean = (ymd: string) => {
   return `${y}년 ${m}월 ${d}일`;
 };
 
+const POPOVER_WIDTH = 360;
+const POPOVER_HEIGHT = 420;
+const POPOVER_GAP = 8;
+
+/** 뱃지(anchorEl) 기준으로 팝오버가 화면 밖으로 나가지 않도록 좌표를 계산 */
+const calcPopoverPosition = (anchorEl: HTMLElement): NonNullable<PopoverState> => {
+  const rect = anchorEl.getBoundingClientRect();
+
+  // 오른쪽 공간이 충분하면 오른쪽, 아니면 왼쪽
+  const canPlaceRight = rect.right + POPOVER_GAP + POPOVER_WIDTH <= window.innerWidth;
+  const placement: 'right' | 'left' = canPlaceRight ? 'right' : 'left';
+  const left =
+    placement === 'right' ? rect.right + POPOVER_GAP : rect.left - POPOVER_GAP - POPOVER_WIDTH;
+
+  // top은 "뱃지의 위쪽 기준". 화면 아래로 넘어가면 위로 올림
+  let top = rect.top;
+  if (top + POPOVER_HEIGHT > window.innerHeight) {
+    top = Math.max(8, window.innerHeight - POPOVER_HEIGHT - 8);
+  }
+
+  return { top, left, placement };
+};
+
 export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) {
   //드롭다운 체험 title
   const { data: activities = [], isLoading, isError } = useMyActivity();
@@ -58,41 +81,15 @@ export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) 
   const [monthDate, setMonthDate] = useState(new Date());
   //모달 상태
   const [isReservationModalOpen, setIsReservationModalOpen] = useState(false);
-  //선택되는 뱃지
-  const [selectBadge, setSelectBadge] = useState<string | null>(null);
-  //수정
+  //선택된 날짜(YYYY-MM-DD). 뱃지를 클릭하면 그 날짜가 담기고, 인포모달/바텀시트에 쓰임
+  const [selectedDateYmd, setSelectedDateYmd] = useState<string | null>(null);
+  //선택된 뱃지 기준 팝오버 좌표
   const [popover, setPopover] = useState<PopoverState>(null);
-  // const handleBadgeClick = (dateYmd: string) => () => {
-  //   openReservationModal(dateYmd);
-  // };
 
   const openReservationModal = (dateYmd: string, anchorEl: HTMLElement) => {
-    setSelectBadge(dateYmd);
+    setSelectedDateYmd(dateYmd);
     setIsReservationModalOpen(true);
-
-    // ✅ 뱃지(또는 wrapper)의 화면 좌표
-    const rect = anchorEl.getBoundingClientRect();
-
-    // ✅ 모달 대략 폭(너 모달 폭에 맞춰 조정)
-    const MODAL_W = 360;
-    const GAP = 8;
-
-    // ✅ 오른쪽 공간이 충분하면 오른쪽, 아니면 왼쪽
-    const canPlaceRight = rect.right + GAP + MODAL_W <= window.innerWidth;
-    const placement: 'right' | 'left' = canPlaceRight ? 'right' : 'left';
-
-    const left = placement === 'right' ? rect.right + GAP : rect.left - GAP - MODAL_W;
-
-    // ✅ top은 “뱃지의 위쪽 기준” (원하면 rect.top 대신 rect.bottom도 가능)
-    let top = rect.top;
-
-    // ✅ 화면 아래로 넘어가면 위로 올리기 (모달 높이 대략값)
-    const MODAL_H = 420; // 너 모달 높이 비슷하게
-    if (top + MODAL_H > window.innerHeight) {
-      top = Math.max(8, window.innerHeight - MODAL_H - 8);
-    }
-
-    setPopover({ top, left, placement });
+    setPopover(calcPopoverPosition(anchorEl));
   };
 
   const handleBadgeClick = (dateYmd: string) => (e: React.MouseEvent) => {
@@ -100,14 +97,9 @@ export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) 
     openReservationModal(dateYmd, e.currentTarget as HTMLElement);
   };
 
-  // const openReservationModal = (dateYmd: string) => {
-  //   setSelectBadge(dateYmd);
-  //   setIsReservationModalOpen(true);
-  // };
-
   const closeReservationModal = () => {
     setIsReservationModalOpen(false);
-    setSelectBadge(null);
+    setSelectedDateYmd(null);
   };
 
   //실제 스크롤 요소 찾아서 스크롤 바 숨기기
@@ -121,10 +113,9 @@ export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) 
     return () => el.classList.remove('scrollbar-hide');
   }, []);
 
-  //selectBadge 에 날짜가 있다면
-  const reservedDate = selectBadge ?? undefined;
+  //선택된 날짜가 있으면 그 날짜의 예약 목록을 조회
+  const reservedDate = selectedDateYmd ?? undefined;
 
-  //data의 이름 변경, 선택된 체험id와 날짜와,모달이true면 데이터 받기(hook에서 enabled로 제어)
   const { data: reservedSchedules = [] } = useReservedSchedule(
     selectedActivityId,
     reservedDate,
@@ -135,9 +126,9 @@ export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) 
   const year = String(monthDate.getFullYear());
   const month = String(monthDate.getMonth() + 1).padStart(2, '0');
 
-  //이름 변경 및 useMyActivitySchedules에 체험아이디와 ,date를 같이 보낸다.
+  //선택된 체험의, 선택된 월의 날짜별 예약 현황(대기/승인/완료 건수)
   const {
-    data: dashboard = [],
+    data: scheduleCounts = [],
     isLoading: isDashboardLoading,
     isError: isDashboardError,
   } = useMyActivitySchedules({
@@ -154,17 +145,20 @@ export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) 
     return activities.find((a) => a.id === selectedActivityId);
   }, [activities, selectedActivityId]);
 
-  // MyActivitySchedulesResponse의 타입을 배열 => 객체형태로
+  // MyActivitySchedulesResponse의 타입을 배열 => 날짜별 객체 형태로
   const countsByDate = useMemo(() => {
-    return dashboard.reduce<Record<string, DayCounts>>((acc, item: MyActivitySchedulesResponse) => {
-      acc[item.date] = {
-        [eventType.reservation]: item.reservations.pending,
-        [eventType.approved]: item.reservations.confirmed,
-        [eventType.completed]: item.reservations.completed,
-      };
-      return acc;
-    }, {});
-  }, [dashboard]);
+    return scheduleCounts.reduce<Record<string, DayCounts>>(
+      (acc, item: MyActivitySchedulesResponse) => {
+        acc[item.date] = {
+          [eventType.reservation]: item.reservations.pending,
+          [eventType.approved]: item.reservations.confirmed,
+          [eventType.completed]: item.reservations.completed,
+        };
+        return acc;
+      },
+      {}
+    );
+  }, [scheduleCounts]);
 
   useEffect(() => {
     if (!selectedActivityId) {
@@ -175,6 +169,65 @@ export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) 
       setSelectedActivityId(undefined);
     }
   }, [activities, selectedActivityId]);
+
+  //달력의 날짜 한 칸: 예약 현황 뱃지 + (PC일 때) 뱃지 클릭 시 뜨는 팝오버
+  const renderDayCell: NonNullable<React.ComponentProps<typeof DayPicker>['components']>['Day'] = (
+    props
+  ) => {
+    const date: Date = props.day.date;
+    const key = toYmd(date);
+    const counts = countsByDate[key];
+
+    return (
+      <td className={props.className}>
+        <div className='flex h-full w-full flex-col items-center'>
+          {/* 날짜(기존 children) */}
+          <div className='w-full text-center'>{props.children}</div>
+
+          {/* counts가 있으면 뱃지 렌더링 */}
+          {counts && (
+            <div className='relative mt-1 flex w-[45px] flex-col items-center gap-1 px-1 lg:w-[67px]'>
+              <EventBadge
+                type={eventType.reservation}
+                count={counts[eventType.reservation]}
+                onClick={handleBadgeClick(key)}
+              />
+              <EventBadge
+                type={eventType.approved}
+                count={counts[eventType.approved]}
+                onClick={handleBadgeClick(key)}
+              />
+              <EventBadge
+                type={eventType.completed}
+                count={counts[eventType.completed]}
+                onClick={handleBadgeClick(key)}
+              />
+
+              {/* ✅ PC(lg)에서는 셀 기준 팝오버(딤 없음) */}
+              {isReservationModalOpen && selectedDateYmd && popover && (
+                <div
+                  className='fixed z-10000 hidden lg:block'
+                  style={{
+                    top: popover.top - 100,
+                    left: popover.left,
+                  }}
+                  onClick={(e) => e.stopPropagation()}>
+                  <ReservationInfoModal
+                    isOpen={isReservationModalOpen}
+                    onClose={closeReservationModal}
+                    dateText={ymdToKorean(selectedDateYmd)}
+                    activityId={selectedActivityId!}
+                    dateYmd={selectedDateYmd}
+                    reservedSchedules={reservedSchedules}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+        </div>
+      </td>
+    );
+  };
 
   return (
     <div className='flex min-h-0 flex-col gap-3.5'>
@@ -221,7 +274,7 @@ export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) 
           </Dropdown>
         </div>
 
-        {/* ✅ dashboard 로딩/에러 */}
+        {/* ✅ 예약 현황 로딩/에러 */}
         {selectedActivityId && (
           <div className='px-1 text-sm'>
             {isDashboardLoading && <span className='text-gray-400'>예약 현황 불러오는 중...</span>}
@@ -263,75 +316,14 @@ export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) 
                 const rotate = orientation === 'left' ? 'rotate-90' : '-rotate-90';
                 return <ArrowDown {...props} className={`${className ?? ''} ${rotate} h-5 w-5`} />;
               },
-              //Day 를 커스텀 하기
-              //모든 타입의 props
-              Day: (props: any) => {
-                //date에 해당날짜 칸의 Date객체 추출
-                const date: Date = props.date ?? props.day?.date ?? props.day;
-                //date문자열로 변환 해서 key담기
-                const key = toYmd(date);
-                //key에 해당하는 status들 가져와서 객체화 조회, counts에 담기
-                const counts = countsByDate[key];
-
-                // const isOpenThisDay = isReservationModalOpen && selectBadge === key;
-
-                return (
-                  <td className={props.className}>
-                    <div className='flex h-full w-full flex-col items-center'>
-                      {/* 날짜(기존 children) */}
-                      <div className='w-full text-center'>{props.children}</div>
-
-                      {/* counts가 있으면 뱃지 렌더링 */}
-                      {counts && (
-                        <div className='relative mt-1 flex w-[45px] flex-col items-center gap-1 px-1 lg:w-[67px]'>
-                          <EventBadge
-                            type={eventType.reservation}
-                            count={counts[eventType.reservation]}
-                            onClick={handleBadgeClick(key)}
-                          />
-                          <EventBadge
-                            type={eventType.approved}
-                            count={counts[eventType.approved]}
-                            onClick={handleBadgeClick(key)}
-                          />
-                          <EventBadge
-                            type={eventType.completed}
-                            count={counts[eventType.completed]}
-                            onClick={handleBadgeClick(key)}
-                          />
-
-                          {/* ✅ PC(lg)에서는 셀 기준 팝오버(딤 없음) */}
-                          {isReservationModalOpen && selectBadge && popover && (
-                            <div
-                              className='fixed z-10000 hidden lg:block'
-                              style={{
-                                top: popover.top - 100,
-                                left: popover.left,
-                              }}
-                              onClick={(e) => e.stopPropagation()}>
-                              <ReservationInfoModal
-                                isOpen={isReservationModalOpen}
-                                onClose={closeReservationModal}
-                                dateText={ymdToKorean(selectBadge)}
-                                activityId={selectedActivityId!}
-                                dateYmd={selectBadge!}
-                                reservedSchedules={reservedSchedules}
-                              />
-                            </div>
-                          )}
-                        </div>
-                      )}
-                    </div>
-                  </td>
-                );
-              },
+              Day: renderDayCell,
             }}
           />
         </div>
       </div>
 
       {/* ✅ 모바일(md 이하): 딤 + 바텀시트 */}
-      {isReservationModalOpen && selectBadge && (
+      {isReservationModalOpen && selectedDateYmd && (
         <div className='lg:hidden'>
           <div className='fixed inset-0 z-9999 bg-black/40' onClick={closeReservationModal} />
 
@@ -339,9 +331,9 @@ export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) 
             <ReservationInfoModal
               isOpen={isReservationModalOpen}
               onClose={closeReservationModal}
-              dateText={ymdToKorean(selectBadge)}
+              dateText={ymdToKorean(selectedDateYmd)}
               activityId={selectedActivityId!}
-              dateYmd={selectBadge!}
+              dateYmd={selectedDateYmd}
               reservedSchedules={reservedSchedules}
             />
           </div>
@@ -349,7 +341,7 @@ export default function BookingStatusPage({ setMobileOpen, mobileOpen }: Props) 
       )}
 
       {/* ✅ PC(lg 이상): 바깥 클릭 닫기용 투명 레이어 */}
-      {isReservationModalOpen && selectBadge && (
+      {isReservationModalOpen && selectedDateYmd && (
         <div
           className='fixed inset-0 z-9998 hidden bg-transparent lg:block'
           onClick={closeReservationModal}

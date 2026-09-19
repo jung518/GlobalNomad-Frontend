@@ -88,8 +88,10 @@ function ActivityDetailPage() {
     }
     // 타임존 이슈 방지: 로컬 날짜를 YYYY-MM-DD 형식으로 변환
     const dateStr = toYmd(selectedDate);
-    const schedule = schedules.find((s: ActivityScheduleResponse) => s.date === dateStr);
-    return schedule?.times || [];
+    const matchedSchedule = schedules.find(
+      (schedule: ActivityScheduleResponse) => schedule.date === dateStr
+    );
+    return matchedSchedule?.times || [];
   }, [schedules, selectedDate]);
 
   // 예약 가능한 날짜들 (times 배열에 시간이 있는 날짜만)
@@ -100,9 +102,9 @@ function ActivityDetailPage() {
     // times 배열이 존재하고 길이가 1 이상인 날짜만 필터링
     // 타임존 이슈 방지: "2026-01-27" -> new Date(2026, 0, 27)로 변환
     return schedules
-      .filter((s: ActivityScheduleResponse) => s.times && s.times.length > 0)
-      .map((s: ActivityScheduleResponse) => {
-        const [year, month, day] = s.date.split('-').map(Number);
+      .filter((schedule: ActivityScheduleResponse) => schedule.times && schedule.times.length > 0)
+      .map((schedule: ActivityScheduleResponse) => {
+        const [year, month, day] = schedule.date.split('-').map(Number);
         return new Date(year, month - 1, day);
       });
   }, [schedules]);
